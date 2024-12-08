@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: oauth
+  security:
+    user:
+      name: mehdi
+      password: 123
+
+# set to trace
+logging:
+  level:
+    org.springframework.security: TRACE
