@@ -1,5 +1,6 @@
 package com.mehdi.oauth.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,6 +22,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfig {
 
+    @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(apiConfigurationSource()));
@@ -32,11 +36,13 @@ public class SecurityConfig {
                 )
                 .formLogin(withDefaults())
                 .oauth2Login(oauth -> oauth
-                        .defaultSuccessUrl("http://localhost:5173")
-                        .failureUrl("/login?error")
+                        .successHandler(oAuth2SuccessHandler)
                 )
                 .logout(logout -> logout
                         .deleteCookies("JSESSIONID")
+                        .clearAuthentication(true)
+                        .invalidateHttpSession(true)
+                        .logoutSuccessUrl("http://localhost:5173")
                 );
         return http.build();
     }
