@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
                         .logoutSuccessUrl("http://localhost:5173")
-                );
+                )
+                .oauth2Client(withDefaults());
         return http.build();
     }
 
