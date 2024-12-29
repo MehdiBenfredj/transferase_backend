@@ -31,11 +31,10 @@ public class SubscriptionsController {
             System.out.println(decodedData);
             Subscription subscription = JSONParser.toSubscription(decodedData);
             subscriptionsService.createSubscription(subscription);
-
         }
-        //redirect to localhost:5173
+        //redirect to localhost:4200
         RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("http://www.localhost:5173");
+        redirectView.setUrl("http://www.localhost:4200");
         return redirectView;
     }
 

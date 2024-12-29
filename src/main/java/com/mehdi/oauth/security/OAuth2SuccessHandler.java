@@ -2,7 +2,9 @@ package com.mehdi.oauth.security;
 
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.service.CustomUserDetailsService;
+import com.mehdi.oauth.service.JSONParser;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -12,6 +14,8 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -24,7 +28,10 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
 
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
 
         OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) authentication;
         //String idToken = ((DefaultOidcUser) oauth2Auth.getPrincipal()).getIdToken().getTokenValue();
@@ -33,13 +40,29 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         User user = customUserDetailsService.loadUserByEmail(principal.getAttribute("email"));
 
         if (user == null) {
-            customUserDetailsService.createUser(principal.getAttribute("email"), principal.getAttribute("name"));
+            user = customUserDetailsService.createUser(
+                    principal.getAttribute("email"),
+                    principal.getAttribute("name"),
+                    principal.getAttribute("picture")                                                  );
         }
+
+        // Send user info in a cookie
+        String encodedCookie = URLEncoder.encode(JSONParser.userToJsonString(user), StandardCharsets.UTF_8.toString());
+        Cookie userInfoCookie = new Cookie("userInfo", encodedCookie);
+
+        //Cookie userInfoCookie = new Cookie("userInfo", "email=" + user.getEmail() + "&name=" + user.getUsername().replace(' ', '_') + "&photo_url=" + user.getPhotoUrl());
+        userInfoCookie.setHttpOnly(true); // Mark the cookie as HttpOnly for better security
+        userInfoCookie.setSecure(true); // Set secure flag if you're using HTTPS
+        userInfoCookie.setPath("/"); // Set the path for which this cookie is valid
+        userInfoCookie.setMaxAge(7 * 24 * 60 * 60); // Cookie expiry time in seconds (7 days)
+
+        // Add the cookie to the HTTP response
+        response.addCookie(userInfoCookie);
 
 
 
         this.setAlwaysUseDefaultTargetUrl(true);
-        this.setDefaultTargetUrl("http://localhost:5173");
+        this.setDefaultTargetUrl("http://localhost:4200");
         super.onAuthenticationSuccess(request, response, authentication);
     }
 

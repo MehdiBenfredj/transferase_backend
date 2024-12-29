@@ -3,13 +3,21 @@ package com.mehdi.oauth.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.RememberMeAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -25,6 +33,8 @@ public class SecurityConfig {
     @Autowired
     private OAuth2SuccessHandler oAuth2SuccessHandler;
 
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(apiConfigurationSource()));
@@ -34,7 +44,6 @@ public class SecurityConfig {
                         .requestMatchers("/private/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .formLogin(withDefaults())
                 .oauth2Login(oauth -> oauth
                         .successHandler(oAuth2SuccessHandler)
                 )
@@ -42,7 +51,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
-                        .logoutSuccessUrl("http://localhost:5173")
+                        .logoutSuccessUrl("http://localhost:4200")
                 )
                 .oauth2Client(withDefaults());
         return http.build();
@@ -58,12 +67,13 @@ public class SecurityConfig {
         return CommonOAuth2Provider.GOOGLE.getBuilder("google")
                 .clientId("463918211853-g9a3b6s65rc5lpv4lu0bu5i61j2167up.apps.googleusercontent.com")
                 .clientSecret("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")
+                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth?access_type=offline")
                 .build();
     }
 
     UrlBasedCorsConfigurationSource apiConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

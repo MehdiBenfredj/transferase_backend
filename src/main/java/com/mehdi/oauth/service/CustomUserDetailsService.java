@@ -2,13 +2,14 @@ package com.mehdi.oauth.service;
 
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.repository.CustomUserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
-public class CustomUserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
     private final CustomUserRepository userRepository;
 
@@ -28,11 +29,23 @@ public class CustomUserDetailsService {
         }
     }
 
-    public User createUser(String email, String username) {
+    public User createUser(String email, String username, String photoUrl) {
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setUsername(username);
+        newUser.setPhotoUrl(photoUrl);
         return userRepository.save(newUser);
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user;
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return null;
+        } else {
+            user = optionalUser.get();
+            return user;
+        }
+    }
 }
