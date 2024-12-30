@@ -3,6 +3,7 @@ package com.mehdi.oauth.security;
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.service.CustomUserDetailsService;
 import com.mehdi.oauth.service.JSONParser;
+import com.mehdi.oauth.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,9 +22,12 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final RefreshTokenService refreshTokenService;
 
-    public OAuth2SuccessHandler(CustomUserDetailsService customUserDetailsService) {
+    public OAuth2SuccessHandler(CustomUserDetailsService customUserDetailsService,
+                                RefreshTokenService refreshTokenService) {
         this.customUserDetailsService = customUserDetailsService;
+        this.refreshTokenService = refreshTokenService;
     }
 
 
@@ -47,7 +51,8 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         }
 
         // Send user info in a cookie
-        String encodedCookie = URLEncoder.encode(JSONParser.userToJsonString(user), StandardCharsets.UTF_8.toString());
+        String encodedCookie = URLEncoder.encode(JSONParser.userToJsonString(user),
+                StandardCharsets.UTF_8.toString());
         Cookie userInfoCookie = new Cookie("userInfo", encodedCookie);
 
         //Cookie userInfoCookie = new Cookie("userInfo", "email=" + user.getEmail() + "&name=" + user.getUsername().replace(' ', '_') + "&photo_url=" + user.getPhotoUrl());
@@ -56,8 +61,18 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         userInfoCookie.setPath("/"); // Set the path for which this cookie is valid
         userInfoCookie.setMaxAge(7 * 24 * 60 * 60); // Cookie expiry time in seconds (7 days)
 
+        Cookie refreshTokenCookie = new Cookie("refreshToken",
+                refreshTokenService.createRefreshToken(user.getEmail()));
+
+        refreshTokenCookie.setHttpOnly(true); // Mark the cookie as HttpOnly for better security
+        refreshTokenCookie.setSecure(true); // Set secure flag if you're using HTTPS
+        refreshTokenCookie.setPath("/"); // Set the path for which this cookie is valid
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // Cookie expiry time in seconds (7 days)
+
+
         // Add the cookie to the HTTP response
         response.addCookie(userInfoCookie);
+        response.addCookie(refreshTokenCookie);
 
 
 

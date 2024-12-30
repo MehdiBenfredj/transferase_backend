@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
@@ -28,8 +29,9 @@ public class AppController {
     }
 
     @GetMapping("/private")
-    public String privatePage() {
-        return "This is a private page";
+    public ResponseEntity<Map<String,String>> privatePage() {
+        Map map = Map.of("message", "This is a private page");
+        return ResponseEntity.ok(map);
     }
 
     @GetMapping("/user_info")

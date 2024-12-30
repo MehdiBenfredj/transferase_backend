@@ -19,14 +19,16 @@ public class RestClientConfig {
         // Create a custom interceptor that specifically uses the ID token
         ClientHttpRequestInterceptor idTokenInterceptor = (request, body, execution) -> {
             // Extract the ID token
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+            try {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
-            OidcIdToken idToken = ((DefaultOidcUser) oauth2Auth.getPrincipal()).getIdToken();
+                OidcIdToken idToken = ((DefaultOidcUser) oauth2Auth.getPrincipal()).getIdToken();
                 // Add the ID token as a bearer token
-            request.getHeaders().setBearerAuth(idToken.getTokenValue());
-
-
+                request.getHeaders().setBearerAuth(idToken.getTokenValue());
+            } catch (Exception e) {
+                //throw new RuntimeException("Failed to extract ID token: ");
+            }
             return execution.execute(request, body);
         };
 
