@@ -6,9 +6,13 @@ import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.security.RefreshTokenAuthenticationToken;
 import com.mehdi.oauth.service.CustomUserDetailsService;
 import com.mehdi.oauth.service.RefreshTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
@@ -45,7 +49,7 @@ public class InvalidSessionController {
     }
 
     @PostMapping(value = "/refreshToken",consumes = { "text/plain"})
-    public ResponseEntity refreshToken(@RequestBody String refreshToken) {
+    public ResponseEntity refreshToken(@RequestBody String refreshToken, HttpServletRequest request) {
 
         try {
             DecodedJWT decodedJWT = refreshTokenService.verifyRefreshToken(refreshToken);
@@ -53,6 +57,13 @@ public class InvalidSessionController {
             User user = userDetailsService.loadUserByEmail(userEmail);
             Authentication authentication = new RefreshTokenAuthenticationToken(user, decodedJWT);
             Authentication authResponse = authenticationManager.authenticate(authentication);
+            // Establish the security context
+            SecurityContext securityContext = SecurityContextHolder.getContext();
+            securityContext.setAuthentication(authResponse);
+
+            HttpSession session = request.getSession(true);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
             String newRefreshToken = refreshTokenService.createRefreshToken(userEmail);
             return ResponseEntity.ok(Map.of("refreshToken", newRefreshToken));
         } catch (TokenExpiredException tokenExpiredException) {

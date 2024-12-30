@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .invalidSessionUrl("/public/invalidSession")
                 )
                 .logout(logout -> logout
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID", "refreshToken", "userInfo")
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
                         .logoutSuccessUrl("http://localhost:4200")
