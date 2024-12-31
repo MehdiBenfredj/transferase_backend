@@ -19,6 +19,7 @@ public class RestClientConfig {
         // Create a custom interceptor that specifically uses the ID token
         ClientHttpRequestInterceptor idTokenInterceptor = (request, body, execution) -> {
             // Extract the ID token
+
             try {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
@@ -34,7 +35,7 @@ public class RestClientConfig {
 
 
         return RestClient.builder()
-                .requestInterceptor(idTokenInterceptor)
+                //.requestInterceptor(idTokenInterceptor)
                 .build();
     }
 

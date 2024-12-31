@@ -8,6 +8,10 @@ import com.mehdi.oauth.service.CustomUserDetailsService;
 import com.mehdi.oauth.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -17,8 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,15 +46,25 @@ public class InvalidSessionController {
     }
 
     @GetMapping(value = "/invalidSession")
-    public ResponseEntity<Map<String, String>> invalidSession() {
-        Map<String, String> map = new HashMap<>();
-        map.put("redirectUrl", "refreshToken");
-        return ResponseEntity.ok(map);
+    public ResponseEntity invalidSession(HttpServletRequest request) {
+        OkHttpClient client = new OkHttpClient();
+
+        Request refreshTokenRequest = new Request.Builder()
+                .url("http://localhost:4200/refreshToken")
+                .build();
+
+        try (Response response = client.newCall(refreshTokenRequest).execute()) {
+            String refreshToken = response.body().string();
+            JSONObject jsonObject = new JSONObject(refreshToken);
+            refreshToken = jsonObject.getString("refreshToken");
+            return refreshToken(refreshToken, request);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @PostMapping(value = "/refreshToken",consumes = { "text/plain"})
+    @PostMapping(value = "/refreshToken", consumes = "text/plain")
     public ResponseEntity refreshToken(@RequestBody String refreshToken, HttpServletRequest request) {
-
         try {
             DecodedJWT decodedJWT = refreshTokenService.verifyRefreshToken(refreshToken);
             String userEmail = decodedJWT.getSubject();
