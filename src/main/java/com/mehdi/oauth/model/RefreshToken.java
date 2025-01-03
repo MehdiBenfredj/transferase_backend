@@ -9,17 +9,9 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RefreshToken {
+@ToString
+public final class RefreshToken {
     private int id;
     private String token;
     private Instant expiryDate;
-
-    @Override
-    public String toString() {
-        return "RefreshToken{" +
-                "id=" + id +
-                ", token='" + token + '\'' +
-                ", expiryDate=" + expiryDate +
-                '}';
-    }
 }
