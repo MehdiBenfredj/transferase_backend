@@ -8,9 +8,9 @@ import java.util.Collection;
 
 public class RefreshTokenAuthenticationToken extends AbstractAuthenticationToken {
     Object credentials;
-    Object principal;
+    User principal;
 
-    public RefreshTokenAuthenticationToken(Object principal, Object credentials) {
+    public RefreshTokenAuthenticationToken(User principal, Object credentials) {
         super(null);
         this.credentials = credentials;
         this.principal = principal;
@@ -18,7 +18,7 @@ public class RefreshTokenAuthenticationToken extends AbstractAuthenticationToken
     }
 
     public void authenticated(
-            Object principal,
+            User principal,
             Object credentials,
             Collection<? extends GrantedAuthority> grantedAuthorities) {
         this.setAuthenticated(true);
@@ -30,7 +30,7 @@ public class RefreshTokenAuthenticationToken extends AbstractAuthenticationToken
     }
 
     @Override
-    public Object getPrincipal() {
+    public User getPrincipal() {
         return this.principal;
     }
 }

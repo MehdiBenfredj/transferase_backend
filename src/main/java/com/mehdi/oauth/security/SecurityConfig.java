@@ -1,6 +1,5 @@
 package com.mehdi.oauth.security;
 
-import com.mehdi.oauth.service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -84,9 +83,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager (RefreshTokenService refreshTokenService) {
+    public AuthenticationManager authenticationManager () {
         RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider =
-                new RefreshTokenAuthenticationProvider(refreshTokenService);
+                new RefreshTokenAuthenticationProvider();
         ProviderManager providerManager = new ProviderManager(refreshTokenAuthenticationProvider);
         providerManager.setEraseCredentialsAfterAuthentication(false);
         return providerManager;

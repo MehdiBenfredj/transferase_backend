@@ -6,10 +6,10 @@ import org.json.JSONObject;
 
 public class JSONParser {
 
-    public static Subscription toSubscription(String json) {
+    public static Subscription toSubscription(String json, String userId) {
         Subscription subscription = new Subscription();
         JSONObject jsonObject = new JSONObject(json);
-        subscription.setUserId("1");
+        subscription.setUserId(userId);
         subscription.setService(jsonObject.getJSONObject("integration").getString("type"));
         subscription.setIntegrationUserUUID(jsonObject.getString("integrationUserUUID"));
         return subscription;
