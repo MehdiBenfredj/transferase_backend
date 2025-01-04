@@ -2,9 +2,6 @@ package com.mehdi.oauth.security;
 
 import com.mehdi.oauth.model.User;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
 
 public class RefreshTokenAuthenticationToken extends AbstractAuthenticationToken {
     Object credentials;
@@ -17,10 +14,7 @@ public class RefreshTokenAuthenticationToken extends AbstractAuthenticationToken
         setAuthenticated(false);
     }
 
-    public void authenticated(
-            User principal,
-            Object credentials,
-            Collection<? extends GrantedAuthority> grantedAuthorities) {
+    public void authenticated() {
         this.setAuthenticated(true);
     }
 

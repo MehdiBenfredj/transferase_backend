@@ -1,4 +1,4 @@
-package com.mehdi.oauth.service;
+package com.mehdi.oauth.utils;
 
 import com.mehdi.oauth.model.Subscription;
 import com.mehdi.oauth.model.User;

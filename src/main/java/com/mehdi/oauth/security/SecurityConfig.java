@@ -37,9 +37,9 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/private/**").authenticated()
-                        .anyRequest().authenticated()
+                        //.requestMatchers("/public/**").permitAll()
+                        //.requestMatchers("/private/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth -> oauth
                         .successHandler(oAuth2SuccessHandler)

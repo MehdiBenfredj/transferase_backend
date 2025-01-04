@@ -41,10 +41,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
         // Also ensure we return the original getDetails(), so that future
         // authentication events after cache expiry contain the details
         RefreshTokenAuthenticationToken result = new RefreshTokenAuthenticationToken(principal, authentication);
-        result.authenticated(
-                principal,
-                authentication.getCredentials(),
-                null);
+        result.authenticated();
         result.setDetails(authentication.getDetails());
         this.logger.debug("Authenticated user");
         return result;

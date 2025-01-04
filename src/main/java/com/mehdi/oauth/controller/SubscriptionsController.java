@@ -3,8 +3,8 @@ package com.mehdi.oauth.controller;
 import com.mehdi.oauth.model.Subscription;
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.security.RefreshTokenAuthenticationToken;
-import com.mehdi.oauth.service.CustomUserDetailsService;
-import com.mehdi.oauth.service.JSONParser;
+import com.mehdi.oauth.security.service.CustomUserDetailsService;
+import com.mehdi.oauth.utils.JSONParser;
 import com.mehdi.oauth.service.SubscriptionsService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -22,7 +22,6 @@ public class SubscriptionsController {
         this.subscriptionsService = subscriptionsService;
         this.userDetailsService = userDetailsService;
     }
-
 
     @GetMapping("create_subscription")
     public RedirectView collectDataFromReturnUrl(@RequestParam("data64") String data64, Authentication authentication) {
@@ -43,10 +42,8 @@ public class SubscriptionsController {
             subscriptionsService.createSubscription(subscription);
         }
 
-        //redirect to localhost:4200
         RedirectView redirectView = new RedirectView();
         redirectView.setUrl("http://localhost:4200");
         return redirectView;
     }
-
 }

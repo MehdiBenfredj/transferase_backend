@@ -1,4 +1,4 @@
-package com.mehdi.oauth.service;
+package com.mehdi.oauth.security.service;
 
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.repository.CustomUserRepository;

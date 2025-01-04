@@ -1,4 +1,4 @@
-package com.mehdi.oauth.service;
+package com.mehdi.oauth.security.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
