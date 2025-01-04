@@ -1,11 +1,11 @@
 package com.mehdi.oauth.controller.client;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -13,17 +13,16 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
+    @Value("${spring.application.devtoken}")
+    private String token;
 
     @Bean
-    public RestClient restClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+    public RestClient authServerRestClient() {
         // Create a custom interceptor that specifically uses the ID token
         ClientHttpRequestInterceptor idTokenInterceptor = (request, body, execution) -> {
             // Extract the ID token
-
             try {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-
                 OidcIdToken idToken = ((DefaultOidcUser) oauth2Auth.getPrincipal()).getIdToken();
                 // Add the ID token as a bearer token
                 request.getHeaders().setBearerAuth(idToken.getTokenValue());
@@ -33,10 +32,29 @@ public class RestClientConfig {
             return execution.execute(request, body);
         };
 
-
         return RestClient.builder()
-                //.requestInterceptor(idTokenInterceptor)
+                .requestInterceptor(idTokenInterceptor)
                 .build();
     }
+
+    @Bean
+    public RestClient musicApiRestClient() {
+        ClientHttpRequestInterceptor musicApiRestTokenInterceptor = (request, body, execution) -> {
+            request.getHeaders().setBearerAuth(token);
+            return execution.execute(request, body);
+        };
+
+        return RestClient.builder()
+                .requestInterceptor(musicApiRestTokenInterceptor)
+                .build();
+    }
+
+    @Bean
+    @Primary
+    public RestClient restClient() {
+        return RestClient.builder()
+                .build();
+    }
+
 
 }

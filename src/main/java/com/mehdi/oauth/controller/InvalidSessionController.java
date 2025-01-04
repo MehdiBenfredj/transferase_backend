@@ -17,9 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.Map;
@@ -28,13 +26,14 @@ import java.util.Map;
 @RestController
 public class InvalidSessionController {
 
-    private final RestClient restClient;
     private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
 
-    public InvalidSessionController(RestClient restClient, RefreshTokenService refreshTokenService, CustomUserDetailsService customUserDetailsService, UserDetailsService userDetailsService, AuthenticationManager authenticationManager) {
-        this.restClient = restClient;
+    public InvalidSessionController(
+            RefreshTokenService refreshTokenService,
+            CustomUserDetailsService customUserDetailsService,
+            AuthenticationManager authenticationManager) {
         this.refreshTokenService = refreshTokenService;
         this.userDetailsService = customUserDetailsService;
         this.authenticationManager = authenticationManager;
