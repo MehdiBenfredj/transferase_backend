@@ -27,7 +27,7 @@ public class RestClientConfig {
                 // Add the ID token as a bearer token
                 request.getHeaders().setBearerAuth(idToken.getTokenValue());
             } catch (Exception e) {
-                //throw new RuntimeException("Failed to extract ID token: ");
+                throw new RuntimeException("Failed to extract ID token: ");
             }
             return execution.execute(request, body);
         };
@@ -40,7 +40,7 @@ public class RestClientConfig {
     @Bean
     public RestClient musicApiRestClient() {
         ClientHttpRequestInterceptor musicApiRestTokenInterceptor = (request, body, execution) -> {
-            request.getHeaders().setBearerAuth(token);
+            request.getHeaders().set("Authorization", "DevToken " + token);
             return execution.execute(request, body);
         };
 

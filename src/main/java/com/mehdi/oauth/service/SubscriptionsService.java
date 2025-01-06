@@ -19,6 +19,10 @@ public class SubscriptionsService {
         return subscriptionsRepository.findByUserId(userId);
     }
 
+    public Subscription getSubscriptionsByUserIdAndService(String userId,String service) {
+        return subscriptionsRepository.findByUserIdAndService(userId, service).orElse(null);
+    }
+
     // create new subscription
     public Subscription createSubscription(Subscription subscription) {
         return  subscriptionsRepository.save(subscription);

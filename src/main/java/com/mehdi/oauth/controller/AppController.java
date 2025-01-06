@@ -22,7 +22,7 @@ import static com.mehdi.oauth.utils.KeyUtils.loadPrivateKey;
 public class AppController {
 
     @GetMapping("/music_api_token")
-    public String publicPage() throws Exception {
+    public ResponseEntity<Map<String, String>> musicApiToken() throws Exception {
         // Load private key
         PrivateKey privateKey = loadPrivateKey("src/main/resources/private_pkcs8.key");
 
@@ -53,8 +53,7 @@ public class AppController {
         // Serialize the JWT to a compact form
         String token = signedJWT.serialize();
 
-        System.out.println("Generated JWT: " + token);
-        return token;
+        return ResponseEntity.ok(Map.of("DevToken", token));
     }
 
     @GetMapping("/private")

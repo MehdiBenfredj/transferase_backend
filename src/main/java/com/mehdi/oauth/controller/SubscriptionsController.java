@@ -37,7 +37,6 @@ public class SubscriptionsController {
 
         if (data64 != null && !data64.isEmpty()) {
             String decodedData = new String(Base64.getDecoder().decode(data64));
-            System.out.println(decodedData);
             Subscription subscription = JSONParser.toSubscription(decodedData, userId);
             subscriptionsService.createSubscription(subscription);
         }
