@@ -1,7 +1,7 @@
 spring:
   application:
     name: oauth
-    devtoken: DevToken eyJraWQiOiIyZGRlYjFjYjM5IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiI5MzlkN2RlNi1hZTY5LTRlMGUtYTM2Yy1lZTljOTJiN2E1YzUiLCJzdWIiOiI2YTczNjYyNS03MWJhLTRhYjQtOWRkNy1jYTY3NDAzOGMxN2MiLCJleHAiOjE3MzcxNjM1MTIsImlhdCI6MTczNTk1MzkxMn0.LZYbkGU-9zJXsQBpOvFihvLqKUCpeS3EeStKW7IA-HdTQkd_o6pOh27RJgKyin8bahwGZa14Z_0BNG3LEV7suw
+    devtoken: eyJhbGciOiJFUzI1NiIsImtpZCI6IjMzMTE4OTRkNDkifQ.eyJpc3MiOiIyY2Y4MmRiMy00MDY0LTQyMzUtODI1My0xNjk5NGViNTE3NzMiLCJpYXQiOjE3MzYxODA5NTMuODM5LCJleHAiOjE3MzczOTA1NTMuODM5fQ.g30g5E_dXpK36A6Y3CdhG1CAjUmh0o6JeXQn8JRce0BfVGDMczQsdQkq2Qx4A2fNV9AWt-Gp3gNnHHfkoxDM6w
   datasource:
     url: jdbc:mysql://localhost:3307/transferase
     username: mehdi

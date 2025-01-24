@@ -2,7 +2,8 @@ package com.mehdi.oauth.security;
 
 import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
-import com.mehdi.oauth.security.service.RefreshTokenService;
+import com.mehdi.oauth.security.service.TokenService;
+import com.mehdi.oauth.utils.CookieUtils;
 import com.mehdi.oauth.utils.JSONParser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -23,12 +24,12 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final RefreshTokenService refreshTokenService;
+    private final TokenService tokenService;
 
     public OAuth2SuccessHandler(CustomUserDetailsService customUserDetailsService,
-                                RefreshTokenService refreshTokenService) {
+                                TokenService tokenService) {
         this.customUserDetailsService = customUserDetailsService;
-        this.refreshTokenService = refreshTokenService;
+        this.tokenService = tokenService;
     }
 
 
@@ -53,27 +54,24 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         // Send user info in a cookie
         String encodedCookie = URLEncoder.encode(JSONParser.userToJsonString(user),
                 StandardCharsets.UTF_8);
-        Cookie userInfoCookie = createCookie("userInfo", encodedCookie);
-        Cookie refreshTokenCookie = createCookie("refreshToken", refreshTokenService.createRefreshToken(user.getEmail()));
+        Cookie userInfoCookie = CookieUtils.createCookie("userInfo", encodedCookie);
+        Cookie refreshTokenCookie = CookieUtils.createCookie("refreshToken", tokenService.createRefreshToken(
+                user.getEmail(),
+                user.getUsername(),
+                user.getPhotoUrl()));
+        Cookie authTokenCookie = CookieUtils.createCookie("authToken", tokenService.createAuthToken(
+                user.getEmail(),
+                user.getUsername(),
+                user.getPhotoUrl()));
 
         // Add the cookie to the HTTP response
         response.addCookie(userInfoCookie);
         response.addCookie(refreshTokenCookie);
+        response.addCookie(authTokenCookie);
 
         this.setAlwaysUseDefaultTargetUrl(true);
         this.setDefaultTargetUrl("http://localhost:4200");
         super.onAuthenticationSuccess(request, response, authentication);
-    }
-
-    @NotNull
-    private Cookie createCookie(String userInfo, String encodedCookie) {
-        Cookie userInfoCookie = new Cookie(userInfo, encodedCookie);
-
-        userInfoCookie.setHttpOnly(true); // Mark the cookie as HttpOnly for better security
-        userInfoCookie.setSecure(true); // Set secure flag if you're using HTTPS
-        userInfoCookie.setPath("/"); // Set the path for which this cookie is valid
-        userInfoCookie.setMaxAge(7 * 24 * 60 * 60); // Cookie expiry time in seconds (7 days)
-        return userInfoCookie;
     }
 
 }

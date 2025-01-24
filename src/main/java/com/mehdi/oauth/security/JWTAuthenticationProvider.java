@@ -13,14 +13,14 @@ import org.springframework.util.Assert;
 
 
 @Component
-public class RefreshTokenAuthenticationProvider implements AuthenticationProvider {
+public class JWTAuthenticationProvider implements AuthenticationProvider {
     protected MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
     protected final Log logger = LogFactory.getLog(getClass());
 
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(RefreshTokenAuthenticationToken.class, authentication,
+        Assert.isInstanceOf(JWTAuthenticationToken.class, authentication,
                 () -> this.messages.getMessage("RefreshTokenAuthenticationProvider.onlySupports",
                         "Only RefreshTokenAuthenticationToken is supported"));
         User user = (User) authentication.getPrincipal();
@@ -30,7 +30,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (RefreshTokenAuthenticationToken.class.isAssignableFrom(authentication));
+        return (JWTAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
     protected Authentication createSuccessAuthentication(
@@ -40,7 +40,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
         // so subsequent attempts are successful even with encoded passwords.
         // Also ensure we return the original getDetails(), so that future
         // authentication events after cache expiry contain the details
-        RefreshTokenAuthenticationToken result = new RefreshTokenAuthenticationToken(principal, authentication);
+        JWTAuthenticationToken result = new JWTAuthenticationToken(principal, authentication);
         result.authenticated();
         result.setDetails(authentication.getDetails());
         this.logger.debug("Authenticated user");

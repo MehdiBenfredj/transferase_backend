@@ -39,7 +39,7 @@ public class AppController {
 
         JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .type(JOSEObjectType.JWT)  // Set the type to JWT
-                .keyID("2ddeb1cb39")      // Optional: specify a key ID (kid)
+                .keyID("2ddeb1cb39")   // Optional: specify a key ID (kid)
                 .build();
         // Create the signed JWT
         SignedJWT signedJWT = new SignedJWT(

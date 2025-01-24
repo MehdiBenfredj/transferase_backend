@@ -2,7 +2,7 @@ package com.mehdi.oauth.controller;
 
 import com.mehdi.oauth.model.Subscription;
 import com.mehdi.oauth.model.User;
-import com.mehdi.oauth.security.RefreshTokenAuthenticationToken;
+import com.mehdi.oauth.security.JWTAuthenticationToken;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
 import com.mehdi.oauth.utils.JSONParser;
 import com.mehdi.oauth.service.SubscriptionsService;
@@ -31,7 +31,7 @@ public class SubscriptionsController {
             User user = userDetailsService.loadUserByEmail(email);
             userId = user.getId();
         } else {
-            RefreshTokenAuthenticationToken token = (RefreshTokenAuthenticationToken) authentication;
+            JWTAuthenticationToken token = (JWTAuthenticationToken) authentication;
             userId = token.getPrincipal().getId();
         }
 

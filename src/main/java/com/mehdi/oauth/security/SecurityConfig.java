@@ -1,6 +1,7 @@
 package com.mehdi.oauth.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mehdi.oauth.security.service.CustomUserDetailsService;
+import com.mehdi.oauth.security.service.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,10 +10,12 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,31 +29,42 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfig {
 
-    @Autowired
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final TokenService tokenService;
+    private final CustomUserDetailsService userDetailsService;
 
+    SecurityConfig(OAuth2SuccessHandler oAuth2SuccessHandler,
+                   TokenService tokenService,
+                   CustomUserDetailsService userDetailsService) {
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+        this.tokenService = tokenService;
+        this.userDetailsService = userDetailsService;
+    }
 
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(apiConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable);
+        http.addFilterBefore(jwtAuthenticationFilter(
+                tokenService,
+                userDetailsService,
+                authenticationManager()), OAuth2LoginAuthenticationFilter.class);
         http
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("/public/**").permitAll()
-                        //.requestMatchers("/private/**").authenticated()
+                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/private/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth -> oauth
                         .successHandler(oAuth2SuccessHandler)
                 )
-                .sessionManagement(session -> session
-                        .invalidSessionUrl("/public/invalidSession")
+                .sessionManagement((session) -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .logout(logout -> logout
-                        .deleteCookies("JSESSIONID", "refreshToken", "userInfo")
+                        .deleteCookies("refreshToken", "userInfo")
                         .clearAuthentication(true)
-                        .invalidateHttpSession(true)
                         .logoutSuccessUrl("http://localhost:4200")
                 )
                 .oauth2Client(withDefaults());
@@ -71,7 +85,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    UrlBasedCorsConfigurationSource apiConfigurationSource() {
+    private UrlBasedCorsConfigurationSource apiConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -84,10 +98,18 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager () {
-        RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider =
-                new RefreshTokenAuthenticationProvider();
-        ProviderManager providerManager = new ProviderManager(refreshTokenAuthenticationProvider);
+        JWTAuthenticationProvider JWTAuthenticationProvider =
+                new JWTAuthenticationProvider();
+        ProviderManager providerManager = new ProviderManager(JWTAuthenticationProvider);
         providerManager.setEraseCredentialsAfterAuthentication(false);
         return providerManager;
+    }
+
+
+    public JWTAuthenticationFilter jwtAuthenticationFilter(
+            TokenService tokenService,
+            CustomUserDetailsService userDetailsService,
+            AuthenticationManager authenticationManager) {
+        return new JWTAuthenticationFilter(tokenService, userDetailsService, authenticationManager);
     }
 }
