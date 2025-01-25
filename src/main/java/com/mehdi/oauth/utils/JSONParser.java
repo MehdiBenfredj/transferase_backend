@@ -23,4 +23,9 @@ public class JSONParser {
 
         return userJson.toString();
     }
+
+    public static String extractData(String json) {
+        JSONObject jsonObject = new JSONObject(json);
+        return jsonObject.getString("data");
+    }
 }

@@ -1,7 +1,5 @@
 package com.mehdi.oauth.service;
 
-import com.mehdi.oauth.model.Subscription;
-import com.mehdi.oauth.model.User;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,7 +23,7 @@ public class MusicAPIService {
         this.subscriptionsService = subscriptionsService;
     }
 
-    public List getUserServicePlaylists(String email, String service) {
+    public List<Object> getUserServicePlaylists(String email, String service) {
         try {
             String musicApiUuid = getUserMusicApiUuid(email, service);
             String result = musicRestClient.get()
