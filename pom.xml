@@ -99,6 +99,11 @@
             <version>5.0.0-alpha.12</version>
         </dependency>
 
+        <dependency>
+            <groupId>me.xdrop</groupId>
+            <artifactId>fuzzywuzzy</artifactId>
+            <version>1.4.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -3,6 +3,9 @@ package com.mehdi.oauth.service;
 import com.mehdi.oauth.model.*;
 import com.mehdi.oauth.security.JWTAuthenticationToken;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
+import com.mehdi.oauth.utils.StringUtils;
+import me.xdrop.fuzzywuzzy.FuzzySearch;
+import me.xdrop.fuzzywuzzy.model.BoundExtractedResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,11 +17,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Service
 public class MusicAPIService {
+    private final List<String> SUPPORT_ISRC_SEARCH = List.of("spotify");
     private static final Logger logger = LoggerFactory.getLogger(MusicAPIService.class);
     private final String BASE_URL = "https://api.musicapi.com/api/";
     private final RestClient musicRestClient;
@@ -39,8 +44,6 @@ public class MusicAPIService {
                     .accept(APPLICATION_JSON)
                     .retrieve()
                     .body(String.class);
-
-            System.out.println(result);
             JSONObject jsonObject = new JSONObject(result);
             return new JSONArray(jsonObject.getJSONArray("results")).toList();
         } catch (Exception e) {
@@ -71,68 +74,104 @@ public class MusicAPIService {
             logger.error(e.getMessage(), e);
             return;
         }
-        // for each playlist
+
         for (WorkflowDTO.Workflow.Playlist originPlaylist : workflow.getWorkflow().getSelectedPlaylists()) {
-            // get songs from playlist
-            PlaylistItemsDto result = getPlaylistItems(originUuid, originPlaylist.getId());
-            // create dest playlist
+            // Create destination playlist for each origin playlist
             WorkflowDTO.Workflow.Playlist destPlaylist = createPlaylist(destUuid, originPlaylist);
-            // for each song
-            if (result != null) {
+            String nextPageToken = null;
+
+            do {
                 List<String> tracksToAdd = new ArrayList<>();
-                for (Track track : result.getTracks()) {
-                    // add to dest playlist
-                    Track destTrack = getDestTrack(destUuid, workflow.getWorkflow().getDestination(), track);
-                    if (destTrack != null) {
-                        tracksToAdd.add(destTrack.getId());
-                    }
+                PlaylistItemsDto currentPage = getPlaylistItems(
+                        originUuid,
+                        originPlaylist.getId(),
+                        nextPageToken
+                );
+
+                if (currentPage == null) break;
+
+                // Process tracks in current page
+                for (Track track : currentPage.getTracks()) {
+                    Optional<Track> destTrack = getDestTrack(
+                            destUuid,
+                            track,
+                            workflow.getWorkflow().getDestination()
+                    );
+                    destTrack.ifPresent(t -> tracksToAdd.add(t.getId()));
                 }
-                addTracksToPlaylist(destUuid, destPlaylist.getId(), tracksToAdd);
-            }
 
+                // Add current page's tracks immediately
+                if (!tracksToAdd.isEmpty()) {
+                    addTracksToPlaylist(destUuid, destPlaylist.getId(), tracksToAdd);
+                }
+
+                // Update pagination token
+                nextPageToken = currentPage.getNextParam();
+            } while (nextPageToken != null);
         }
-
-
     }
 
-    private Track getDestTrack(String userUUID, String service, Track track) {
+
+    private Optional<Track> getDestTrack(String userUUID, Track track, String destService) {
+        Optional<Track> destTrack = Optional.empty();
         SearchResultDto searchResult = new SearchResultDto();
-        if (track.getIsrc() != null) {
+        if (track.getIsrc() != null && SUPPORT_ISRC_SEARCH.contains(destService)) {
             try {
-                 searchResult = musicRestClient.post()
-                        .uri(BASE_URL + userUUID +"/search")
+                searchResult = musicRestClient.post()
+                        .uri(BASE_URL + userUUID + "/search")
                         .accept(APPLICATION_JSON)
-                         .body(new IsrcSearchDto("track", track.getIsrc()))
+                        .body(new IsrcSearchDto("track", track.getIsrc()))
                         .retrieve()
                         .body(SearchResultDto.class);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
-                return searchResult.getResults().getFirst().getTrack();
+            }
+            if(searchResult != null) {
+                destTrack = Optional.of(searchResult)
+                        .map(SearchResultDto::getResults)
+                        .filter(results -> !results.isEmpty())
+                        .map(List::getFirst)
+                        .map(SearchResultDto.ResultDTO::getTrack);
             }
         } else {
             try {
                 SearchDto body = SearchDto.builder()
                         .type("track")
-                        .track(track.getName())
-                        .artist(track.getArtists() != null ? track.getArtists().getFirst().getName(): null)
-                        .album(track.getAlbum() != null ? track.getAlbum().getName() : null)
+                        .track(StringUtils.trimAfterDelimiters(track.getName()).toLowerCase())
+                        .artist(track.getArtists() != null ? StringUtils.trimAfterDelimiters(track.getArtists().getFirst().getName()).toLowerCase() : null)
+                        .album(track.getAlbum() != null ? StringUtils.trimAfterDelimiters(track.getAlbum().getName()).toLowerCase() : null)
                         .build();
                 searchResult = musicRestClient.post()
-                        .uri(BASE_URL + userUUID +"/search")
+                        .uri(BASE_URL + userUUID + "/search")
                         .accept(APPLICATION_JSON)
                         .body(body)
                         .retrieve()
                         .body(SearchResultDto.class);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
-                return searchResult.getResults().getFirst().getTrack();
+                return Optional.ofNullable(searchResult.getResults().getFirst().getTrack());
+            }
+
+            if (searchResult != null) {
+                BoundExtractedResult<SearchResultDto.ResultDTO> match = FuzzySearch.extractOne(
+                        track.getName(),
+                        searchResult.getResults(),
+                        result -> result.getTrack().getName()
+                );
+                if (match.getScore() < 90 && track.getAlbum() != null) {
+                    track.setAlbum(null);
+                    destTrack = getDestTrack(userUUID, track, destService);
+                } else {
+                    SearchResultDto.ResultDTO result = match.getReferent();
+                    destTrack = Optional.ofNullable(result.getTrack());
+                }
             }
         }
 
-        return searchResult != null ? searchResult.getResults().getFirst().getTrack() : null ;
+        return destTrack;
     }
 
-    private boolean addTracksToPlaylist(String uuid, String playlistId, List<String> itemIds) {
+    private void addTracksToPlaylist(String uuid, String playlistId, List<String> itemIds) {
 
         try {
              musicRestClient.post()
@@ -143,9 +182,7 @@ public class MusicAPIService {
                     .body(WorkflowDTO.Workflow.Playlist.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return false;
         }
-        return true;
     }
 
     private WorkflowDTO.Workflow.Playlist createPlaylist(String uuid, WorkflowDTO.Workflow.Playlist origin) {
@@ -169,11 +206,13 @@ public class MusicAPIService {
         return  playlist;
     }
 
-    private PlaylistItemsDto getPlaylistItems(String uuid, String playlistId) {
+    private PlaylistItemsDto getPlaylistItems(String uuid, String playlistId, String nextParam) {
         PlaylistItemsDto playlistItems;
         try {
+            String next = nextParam != null ? "?nextParam=" + nextParam : "";
+            String url = BASE_URL + uuid +"/playlists/" + playlistId + "/items" + next;
             playlistItems = musicRestClient.get()
-                    .uri(BASE_URL + uuid +"/playlists/" + playlistId + "/items")
+                    .uri(url)
                     .accept(APPLICATION_JSON)
                     .retrieve()
                     .body(PlaylistItemsDto.class);
