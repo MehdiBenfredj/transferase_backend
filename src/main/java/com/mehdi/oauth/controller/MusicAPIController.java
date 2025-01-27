@@ -1,27 +1,22 @@
 package com.mehdi.oauth.controller;
 
 import com.mehdi.oauth.model.Subscription;
+import com.mehdi.oauth.model.WorkflowDTO;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
 import com.mehdi.oauth.service.MusicAPIService;
 import com.mehdi.oauth.service.SubscriptionsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClient;
-
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("music-api")
 public class MusicAPIController {
-    private final RestClient restClient;
     private final MusicAPIService musicAPIService;
-    private CustomUserDetailsService userService;
-    private SubscriptionsService subscriptionsService;
+    private final CustomUserDetailsService userService;
+    private final SubscriptionsService subscriptionsService;
 
-    public MusicAPIController(RestClient restClient, CustomUserDetailsService userService, SubscriptionsService subscriptionsService, MusicAPIService musicAPIService) {
-        this.restClient = restClient;
+    public MusicAPIController(CustomUserDetailsService userService, SubscriptionsService subscriptionsService, MusicAPIService musicAPIService) {
         this.userService = userService;
         this.subscriptionsService = subscriptionsService;
         this.musicAPIService = musicAPIService;
@@ -43,4 +38,11 @@ public class MusicAPIController {
         List playlists = musicAPIService.getUserServicePlaylists(email, service);
         return ResponseEntity.ok(playlists);
     }
+
+    @PostMapping(path = "transfer", consumes = "application/json")
+    public ResponseEntity transfer(@RequestBody WorkflowDTO workflow) {
+        musicAPIService.transfer(workflow);
+        return ResponseEntity.ok("Transfer complete");
+    }
+
 }
