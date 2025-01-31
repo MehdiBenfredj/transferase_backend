@@ -44,5 +44,10 @@ public class MusicAPIController {
         musicAPIService.transfer(workflow);
         return ResponseEntity.ok("Transfer complete");
     }
-
+    
+    @DeleteMapping("delete")
+    public ResponseEntity deleteSubscription(@RequestParam String integrationUserUUID) {
+        musicAPIService.deleteSubscription(integrationUserUUID);
+        return ResponseEntity.ok("Subscription deleted");
+    }
 }

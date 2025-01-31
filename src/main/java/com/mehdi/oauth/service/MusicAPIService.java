@@ -1,6 +1,7 @@
 package com.mehdi.oauth.service;
 
 import com.mehdi.oauth.model.*;
+import com.mehdi.oauth.repository.SubscriptionsRepository;
 import com.mehdi.oauth.security.JWTAuthenticationToken;
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
 import com.mehdi.oauth.utils.StringUtils;
@@ -29,11 +30,13 @@ public class MusicAPIService {
     private final RestClient musicRestClient;
     private final CustomUserDetailsService userService;
     private final SubscriptionsService subscriptionsService;
+    private final SubscriptionsRepository subscriptionsRepository;
 
-    public MusicAPIService(@Qualifier("musicApiRestClient") RestClient restClient, CustomUserDetailsService userService, SubscriptionsService subscriptionsService) {
+    public MusicAPIService(@Qualifier("musicApiRestClient") RestClient restClient, CustomUserDetailsService userService, SubscriptionsService subscriptionsService, SubscriptionsRepository subscriptionsRepository) {
         this.musicRestClient = restClient;
         this.userService = userService;
         this.subscriptionsService = subscriptionsService;
+        this.subscriptionsRepository = subscriptionsRepository;
     }
 
     public List<Object> getUserServicePlaylists(String email, String service) {
@@ -221,5 +224,17 @@ public class MusicAPIService {
             return null;
         }
         return playlistItems;
+    }
+
+    public void deleteSubscription(String integrationUserUUID) {
+        try {
+            Subscription subscriptionToDelete =
+                    subscriptionsRepository.findSubscriptionByIntegrationUserUUID(integrationUserUUID)
+                                    .orElseThrow(() ->
+                                            new RuntimeException("Subscription " + integrationUserUUID + " not found"));
+            subscriptionsRepository.delete(subscriptionToDelete);
+        } catch (Exception exception) {
+            logger.error("Could not delete integrationUserUUID {}", integrationUserUUID, exception);
+        }
     }
 }
