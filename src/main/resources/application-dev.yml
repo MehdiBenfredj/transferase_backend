@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: oauth
+    devtoken: eyJhbGciOiJFUzI1NiIsImtpZCI6IjMzMTE4OTRkNDkifQ.eyJpc3MiOiIyY2Y4MmRiMy00MDY0LTQyMzUtODI1My0xNjk5NGViNTE3NzMiLCJpYXQiOjE3Mzc3NzExNjcuOTc3LCJleHAiOjE3Mzg5ODA3NjcuOTc3fQ.4vZnelBDfuOQmud_X3O-GIadVBSvK8z0uhbtIIkOVc-cFB1Na1ZWbEk18xT7uixv8UeErIM5MEL_M_geH7Rbkg
+    frontend_url: http://localhost:4200
+  datasource:
+    url: jdbc:mysql://localhost:3307/transferase
+    username: mehdi
+    password: 1234
+
+# set to trace
+logging:
+  level:
+    org.springframework.security: TRACE
+
+

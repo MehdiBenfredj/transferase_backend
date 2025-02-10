@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: transferase-back
+    devtoken: ${MUSIC_API_DEV_TOKEN}
+    frontend_url: https:transferase.eu
+  datasource:
+    url: ${DB_URL} # like jdbc:mysql://localhost:3307/transferase
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+# set to trace
+logging:
+  level:
+    org.springframework.security: TRACE
+
+

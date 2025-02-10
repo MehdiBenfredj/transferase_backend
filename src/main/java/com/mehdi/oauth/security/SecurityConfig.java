@@ -2,10 +2,10 @@ package com.mehdi.oauth.security;
 
 import com.mehdi.oauth.security.service.CustomUserDetailsService;
 import com.mehdi.oauth.security.service.TokenService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,6 +28,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
+    @Value("${spring.application.frontend_url}")
+    private String FRONTEND_URL;
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final TokenService tokenService;
@@ -65,7 +67,7 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .deleteCookies("refreshToken", "userInfo")
                         .clearAuthentication(true)
-                        .logoutSuccessUrl("http://localhost:4200")
+                        .logoutSuccessUrl("https://transferase.eu")
                 )
                 .oauth2Client(withDefaults());
         return http.build();
@@ -87,7 +89,7 @@ public class SecurityConfig {
 
     private UrlBasedCorsConfigurationSource apiConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

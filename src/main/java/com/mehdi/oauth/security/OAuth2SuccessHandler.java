@@ -9,7 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+    @Value("${spring.application.frontend_url}")
+    private String FRONTEND_URL;
 
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenService tokenService;
@@ -70,7 +72,7 @@ public class OAuth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         response.addCookie(authTokenCookie);
 
         this.setAlwaysUseDefaultTargetUrl(true);
-        this.setDefaultTargetUrl("http://localhost:4200");
+        this.setDefaultTargetUrl(FRONTEND_URL);
         super.onAuthenticationSuccess(request, response, authentication);
     }
 
